@@ -1,43 +1,17 @@
 import html
 import random
 import time
-from pathlib import Path
-import glob
-import requests as r
-import urllib.request
 
-import SaitamaRobot.modules.fun_strings as fun_strings
-import SaitamaRobot.modules.helper_funcs.fun_strings as fun
-from SaitamaRobot import dispatcher
-from SaitamaRobot.modules.disable import DisableAbleCommandHandler, DisableAbleMessageHandler
-from SaitamaRobot.modules.helper_funcs.chat_status import is_user_admin
-from SaitamaRobot.modules.helper_funcs.extraction import extract_user
+import Palak.modules.fun_strings as fun_strings
+from Palak import dispatcher
+from Palak.modules.disable import DisableAbleCommandHandler
+from Palak.modules.helper_funcs.chat_status import is_user_admin
+from Palak.modules.helper_funcs.extraction import extract_user
 from telegram import ChatPermissions, ParseMode, Update
 from telegram.error import BadRequest
-from telegram.ext import CallbackContext, run_async, Filters
+from telegram.ext import CallbackContext, run_async
 
 GIF_ID = 'CgACAgQAAx0CSVUvGgAC7KpfWxMrgGyQs-GUUJgt-TSO8cOIDgACaAgAAlZD0VHT3Zynpr5nGxsE'
-
-@run_async
-def me_too(update, context):
-    message = update.effective_message
-    reply = random.choice(
-        ["Me too thanks", "Haha yes, me too", "Same lol", "Me irl"])
-    message.reply_text(reply)
-
-
-@run_async
-def goodnight(update, context):
-    message = update.effective_message
-    reply = random.choice(fun.GDNIGHT)
-    message.reply_text(reply, parse_mode=ParseMode.MARKDOWN)
-
-
-@run_async
-def goodmorning(update, context):
-    message = update.effective_message
-    reply = random.choice(fun.GDMORNING)
-    message.reply_text(reply, parse_mode=ParseMode.MARKDOWN)
 
 
 @run_async
@@ -74,7 +48,7 @@ def slap(update: Update, context: CallbackContext):
     user_id = extract_user(message, args)
 
     if user_id == bot.id:
-        temp = random.choice(fun_strings.SLAP_SAITAMA_TEMPLATES)
+        temp = random.choice(fun_strings.SLAP_Palak_TEMPLATES)
 
         if isinstance(temp, list):
             if temp[2] == "tmute":
@@ -219,6 +193,12 @@ def decide(update: Update, context: CallbackContext):
 
 
 @run_async
+def eightball(update: Update, context: CallbackContext):
+    reply_text = update.effective_message.reply_to_message.reply_text if update.effective_message.reply_to_message else update.effective_message.reply_text
+    reply_text(random.choice(fun_strings.EIGHTBALL))
+
+
+@run_async
 def table(update: Update, context: CallbackContext):
     reply_text = update.effective_message.reply_to_message.reply_text if update.effective_message.reply_to_message else update.effective_message.reply_text
     reply_text(random.choice(fun_strings.TABLE))
@@ -261,19 +241,6 @@ def weebify(update: Update, context: CallbackContext):
     else:
         message.reply_text(string)
 
-@run_async
-def meme(update: Update, context: CallbackContext):
-    msg = update.effective_message
-    meme = r.get("https://meme-api.herokuapp.com/gimme/Animemes/").json()
-    image = meme.get("url")
-    caption = meme.get("title")
-    if not image:
-        msg.reply_text("No URL was received from the API!")
-        return
-    msg.reply_photo(
-                photo=image, caption=caption)
-
-
 
 __help__ = """
  • `/runs`*:* reply a random string from an array of replies
@@ -283,13 +250,13 @@ __help__ = """
  • `/decide`*:* Randomly answers yes/no/maybe
  • `/toss`*:* Tosses A coin
  • `/bluetext`*:* check urself :V
- • `/meme *:* random anime memes
  • `/roll`*:* Roll a dice
  • `/rlg`*:* Join ears,nose,mouth and create an emo ;-;
  • `/shout <keyword>`*:* write anything you want to give loud shout
  • `/weebify <text>`*:* returns a weebified text
  • `/sanitize`*:* always use this before /pat or any contact
  • `/pat`*:* pats a user, or get patted
+ • `/8ball`*:* predicts using 8ball method 
 """
 
 SANITIZE_HANDLER = DisableAbleCommandHandler("sanitize", sanitize)
@@ -302,21 +269,11 @@ SHRUG_HANDLER = DisableAbleCommandHandler("shrug", shrug)
 BLUETEXT_HANDLER = DisableAbleCommandHandler("bluetext", bluetext)
 RLG_HANDLER = DisableAbleCommandHandler("rlg", rlg)
 DECIDE_HANDLER = DisableAbleCommandHandler("decide", decide)
+EIGHTBALL_HANDLER = DisableAbleCommandHandler("8ball", eightball)
 TABLE_HANDLER = DisableAbleCommandHandler("table", table)
 SHOUT_HANDLER = DisableAbleCommandHandler("shout", shout)
 WEEBIFY_HANDLER = DisableAbleCommandHandler("weebify", weebify)
-MEETOO_HANDLER = DisableAbleMessageHandler(
-    Filters.regex(r"(?i)(me too)"), me_too, friendly="metoo"
-)
-GDMORNING_HANDLER = DisableAbleMessageHandler(
-    Filters.regex(r"(?i)(good morning)"), goodmorning, friendly="goodmorning"
-)
-GDNIGHT_HANDLER = DisableAbleMessageHandler(
-    Filters.regex(r"(?i)(good night)"), goodnight, friendly="goodnight"
-)
-MEME_HANDLER = DisableAbleCommandHandler("meme", meme)
 
-dispatcher.add_handler(MEME_HANDLER)
 dispatcher.add_handler(WEEBIFY_HANDLER)
 dispatcher.add_handler(SHOUT_HANDLER)
 dispatcher.add_handler(SANITIZE_HANDLER)
@@ -329,19 +286,16 @@ dispatcher.add_handler(SHRUG_HANDLER)
 dispatcher.add_handler(BLUETEXT_HANDLER)
 dispatcher.add_handler(RLG_HANDLER)
 dispatcher.add_handler(DECIDE_HANDLER)
+dispatcher.add_handler(EIGHTBALL_HANDLER)
 dispatcher.add_handler(TABLE_HANDLER)
-dispatcher.add_handler(MEETOO_HANDLER)
-dispatcher.add_handler(GDMORNING_HANDLER)
-dispatcher.add_handler(GDNIGHT_HANDLER)
-
 
 __mod_name__ = "Fun"
 __command_list__ = [
     "runs", "slap", "roll", "toss", "shrug", "bluetext", "rlg", "decide",
-    "table", "pat", "sanitize", "shout", "weebify"
+    "table", "pat", "sanitize", "shout", "weebify", "8ball"
 ]
 __handlers__ = [
     RUNS_HANDLER, SLAP_HANDLER, PAT_HANDLER, ROLL_HANDLER, TOSS_HANDLER,
     SHRUG_HANDLER, BLUETEXT_HANDLER, RLG_HANDLER, DECIDE_HANDLER, TABLE_HANDLER,
-    SANITIZE_HANDLER, SHOUT_HANDLER, WEEBIFY_HANDLER, MEETOO_HANDLER, GDMORNING_HANDLER, GDNIGHT_HANDLER 
+    SANITIZE_HANDLER, SHOUT_HANDLER, WEEBIFY_HANDLER, EIGHTBALL_HANDLER
 ]
